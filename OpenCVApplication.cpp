@@ -9,8 +9,8 @@ void cutImage(Mat_<Vec3b> image) {
 	std::vector<Mat_<Vec3b>> cutImages;
 	std::vector<Point> positions;
 	// grid de 3 x 3
-	int incrementVertical = (image.rows-1) / 3; // inaltimea unei subimagini
-	int incrementHorizontal = (image.cols-1) / 3; // latimea unei subimagini
+	int incrementVertical = (image.rows - 1) / 3; // inaltimea unei subimagini
+	int incrementHorizontal = (image.cols - 1) / 3; // latimea unei subimagini
 	Mat_<Vec3b> smallImage = Mat(incrementVertical, incrementHorizontal, CV_8UC3);
 
 	smallImage = Mat(image, Rect(0, 0, incrementHorizontal, incrementVertical));
@@ -18,7 +18,7 @@ void cutImage(Mat_<Vec3b> image) {
 	for (int i = 0; i < image.rows - incrementVertical; i += incrementVertical) {
 		for (int j = 0; j < image.cols - incrementHorizontal; j += incrementHorizontal) {
 			smallImage = Mat(image, Rect(i, j, incrementHorizontal, incrementVertical));
-			positions.push_back(Point(i+550, j+320));
+			positions.push_back(Point(i + 550, j + 320));
 			cutImages.push_back(smallImage);
 		}
 	}
@@ -46,9 +46,9 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 			}
 			if (diff == true) {
 				bool noMatchEgde;
-				for (int j = 0;j < 3;j++) {		    //verific primele 3 coloane a imaginii img2
+				for (int j = 0; j < 3; j++) {		    //verific primele 3 coloane a imaginii img2
 					noMatchEgde = false;
-					for (int i = 0;i < img2.rows;i++) {
+					for (int i = 0; i < img2.rows; i++) {
 						if (img1(i, img1.cols - 1)[2] != img2(i, j)[2] || img1(i, img1.cols - 1)[1] != img2(i, j)[1] || img1(i, img1.cols - 1)[0] != img2(i, j)[0]) {
 							noMatchEgde = true;
 							break;
@@ -56,9 +56,9 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 					}
 				}
 				if (noMatchEgde == true) {
-					for (int j = 0;j < 3;j++) {		//verific primele 3 linii a imaginii img2
+					for (int j = 0; j < 3; j++) {		//verific primele 3 linii a imaginii img2
 						noMatchEgde = false;
-						for (int i = 0;i < img2.cols;i++) {
+						for (int i = 0; i < img2.cols; i++) {
 							if (img1(i, img1.cols - 1)[2] != img2(j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(j, img2.cols - 1 - i)[0]) {
 								noMatchEgde = true;
 								break;
@@ -66,9 +66,9 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 						}
 					}
 					if (noMatchEgde == true) {		//verific ultimele 3 coloane a imaginii img2
-						for (int j = 0;j < 3;j++) {
+						for (int j = 0; j < 3; j++) {
 							noMatchEgde = false;
-							for (int i = 0;i < img2.cols;i++) {
+							for (int i = 0; i < img2.cols; i++) {
 								if (img1(i, img1.cols - 1)[2] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[2] || img1(i, img1.cols - 1)[1] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[1] || img1(i, img1.cols - 1)[0] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[0]) {
 									noMatchEgde = true;
 									break;
@@ -76,9 +76,9 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 							}
 						}
 						if (noMatchEgde == true) {	//verific ultimele 3 linii a imaginii img2
-							for (int j = 0;j < 3;j++) {
+							for (int j = 0; j < 3; j++) {
 								noMatchEgde = false;
-								for (int i = 0;i < img2.cols;i++) {
+								for (int i = 0; i < img2.cols; i++) {
 									if (img1(i, img1.cols - 1)[2] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[0]) {
 										noMatchEgde = true;
 										break;
@@ -107,11 +107,11 @@ void stitch() {
 void testOpenImage()
 {
 	char fname[MAX_PATH];
-	while(openFileDlg(fname))
+	while (openFileDlg(fname))
 	{
 		Mat src;
 		src = imread(fname);
-		imshow("image",src);
+		imshow("image", src);
 		waitKey();
 	}
 }
@@ -119,16 +119,16 @@ void testOpenImage()
 void testOpenImagesFld()
 {
 	char folderName[MAX_PATH];
-	if (openFolderDlg(folderName)==0)
+	if (openFolderDlg(folderName) == 0)
 		return;
 	char fname[MAX_PATH];
-	FileGetter fg(folderName,"bmp");
-	while(fg.getNextAbsFile(fname))
+	FileGetter fg(folderName, "bmp");
+	while (fg.getNextAbsFile(fname))
 	{
 		Mat src;
 		src = imread(fname);
-		imshow(fg.getFoundFileName(),src);
-		if (waitKey()==27) //ESC pressed
+		imshow(fg.getFoundFileName(), src);
+		if (waitKey() == 27) //ESC pressed
 			break;
 	}
 }
@@ -143,7 +143,7 @@ Mat rotate(Mat src, double angle)
 	return dst;
 }
 
-void testRotate(){
+void testRotate() {
 
 	char filename[MAX_PATH];
 	openFileDlg(filename);
@@ -169,37 +169,57 @@ double EuclideanDistance(Point p1, Point p2)
 	return dist;
 }
 
-void distance(){
-
+void distance() {
 	Mat m1 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 	Mat m2 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 
 	std::vector<double> distante;
 
-	for (int i = 0; i < m1.rows; i++){
+	for (int i = 0; i < m1.rows; i++) {
 		Point p1 = Point(i, m1.rows - 1);
 		Point p2 = Point(i, 0);
 		distante.push_back(EuclideanDistance(p1, p2));
 	}
-
 }
 
-
-int getDifference(Vec3b pixelA, Vec3b pixelB) {
-	return abs(pixelA[0] - pixelB[0]) + abs(pixelA[1] - pixelB[1]) + abs(pixelA[2] - pixelB[2]);
+double getDifference(Vec3b pixelA, Vec3b pixelB) {
+	int r = (pixelA[2] - pixelB[2]) * (pixelA[2] - pixelB[2]);
+	int g = (pixelA[1] - pixelB[1]) * (pixelA[1] - pixelB[1]);
+	int b = (pixelA[0] - pixelB[0]) * (pixelA[0] - pixelB[0]);
+	double dif = sqrt(r + b + g);
+	return dif;
 }
 
-void testDifference() {
-	int width = poza.cols();
-	int height = poza.rows();
-	int *diferentePeColoane = new int[width - 1];
-
-	for (int j = 0; j < width - 1; j++) {
-		for (int i = 1; i < height; i++) {
-			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
-		}
+//presupunem ca au aceeasi lungime
+double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
+	double diff = 0.0f;
+	for (int i = 0; i < e1.size(); i++) {
+		diff += getDifference(e1[i], e2[i]);
 	}
+	return diff;
 }
+
+std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
+	std::vector<Vec3b> row = src.row(r);
+	return row;
+}
+
+std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
+	std::vector<Vec3b> col = src.col(c);
+	return col;
+}
+
+//void testDifference() {
+//	//int width = poza.cols();
+//	//int height = poza.rows();
+//	int *diferentePeColoane = new int[width - 1];
+//
+//	for (int j = 0; j < width - 1; j++) {
+//		for (int i = 1; i < height; i++) {
+//			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
+//		}
+//	}
+//}
 
 void testImageOpenAndSave()
 {
@@ -240,24 +260,24 @@ void testNegativeImage()
 {
 	char fname[MAX_PATH];
 	int MAX_GREY_VALUE = 256;
-	while(openFileDlg(fname))
+	while (openFileDlg(fname))
 	{
-		Mat_<uchar> src = imread(fname,CV_LOAD_IMAGE_GRAYSCALE);
+		Mat_<uchar> src = imread(fname, CV_LOAD_IMAGE_GRAYSCALE);
 		int height = src.rows;
 		int width = src.cols;
-		Mat_<uchar> dst = Mat_<uchar>(height,width);
+		Mat_<uchar> dst = Mat_<uchar>(height, width);
 		// Asa se acceseaaza pixelii individuali pt. o imagine cu 8 biti/pixel
-		for (int i=0; i<height; i++)
+		for (int i = 0; i < height; i++)
 		{
-			for (int j=0; j<width; j++)
+			for (int j = 0; j < width; j++)
 			{
-				uchar val = src(i,j);
+				uchar val = src(i, j);
 				uchar neg = MAX_GREY_VALUE - val;
-				dst(i,j) = neg;
+				dst(i, j) = neg;
 			}
 		}
-		imshow("Input image",src);
-		imshow("Negative image",dst);
+		imshow("Input image", src);
+		imshow("Negative image", dst);
 		waitKey();
 	}
 }
@@ -275,26 +295,25 @@ int main() {
 		printf(" 5 - Test rotate\n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
-		scanf("%d",&op);
+		scanf("%d", &op);
 		switch (op)
 		{
-			case 1:
-				testOpenImage();
-				break;
-			case 2:
-				testOpenImagesFld();
-				break;
-			case 3:
-				testNegativeImage();
-				break;
-			case 4:
-				stitch();
-				break;
-			case 5:
-				testRotate();
-				break;
+		case 1:
+			extractRow();
+			break;
+		case 2:
+			testOpenImagesFld();
+			break;
+		case 3:
+			testNegativeImage();
+			break;
+		case 4:
+			stitch();
+			break;
+		case 5:
+			testRotate();
+			break;
 		}
-	}
-	while (op!=0);
+	} while (op != 0);
 	return 0;
 }
