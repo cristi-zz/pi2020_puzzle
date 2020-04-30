@@ -199,6 +199,7 @@ double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
 	return diff;
 }
 
+<<<<<<< HEAD
 std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
 	std::vector<Vec3b> row = src.row(r);
 	return row;
@@ -207,6 +208,25 @@ std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
 std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
 	std::vector<Vec3b> col = src.col(c);
 	return col;
+=======
+void testDifference() {
+
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+
+	Mat_<uchar> img = imread(fname, CV_LOAD_COLOR);
+
+	int height = img.rows();
+	int width = img.cols();
+	
+	int *diferentePeColoane = new int[width - 1];
+
+	for (int i = 1; i < height - 1 ; i++) {
+		for (int j = 1; j < width - 1; j++) {
+			diferentePeColoane[j] += getDifference(img(i, j), img(i, j + 1));
+		}
+	}
+>>>>>>> 276bd80486afb9813ba51d6c3e7c0849c4fb77d7
 }
 
 //void testDifference() {
