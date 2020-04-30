@@ -5,12 +5,12 @@
 #include "common.h"
 
 
-void cutImage(Mat_<Vec3b> image) {
+void cutToGrid(Mat_<Vec3b> image) {
 	std::vector<Mat_<Vec3b>> cutImages;
-	std::vector<Point> positions;
 	// grid de 3 x 3
 	int incrementVertical = (image.rows - 1) / 3; // inaltimea unei subimagini
 	int incrementHorizontal = (image.cols - 1) / 3; // latimea unei subimagini
+
 	Mat_<Vec3b> smallImage = Mat(incrementVertical, incrementHorizontal, CV_8UC3);
 
 	smallImage = Mat(image, Rect(0, 0, incrementHorizontal, incrementVertical));
@@ -18,19 +18,26 @@ void cutImage(Mat_<Vec3b> image) {
 	for (int i = 0; i < image.rows - incrementVertical; i += incrementVertical) {
 		for (int j = 0; j < image.cols - incrementHorizontal; j += incrementHorizontal) {
 			smallImage = Mat(image, Rect(i, j, incrementHorizontal, incrementVertical));
-			positions.push_back(Point(i + 550, j + 320));
+
 			cutImages.push_back(smallImage);
 		}
 	}
 
 	imshow("Original Image", image);
-	moveWindow("Original Image", 200, 200);
 	for (int i = 0; i < cutImages.size(); i++) {
 		std::string imgName = "Cut image no " + std::to_string(i);
 		imshow(imgName, cutImages.at(i));
-		moveWindow(imgName, positions.at(i).x, positions.at(i).y);
 	}
 	waitKey(0);
+}
+
+void stitch() {
+	Mat_<Vec3b> image;
+	char filename[MAX_PATH];
+	while (openFileDlg(filename)) {
+		image = imread(filename, CV_LOAD_IMAGE_COLOR);
+		cutToGrid(image);
+	}
 }
 
 void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
@@ -94,15 +101,45 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 	}
 }
 
-void stitch() {
-	Mat_<Vec3b> image;
-	char filename[MAX_PATH];
-	while (openFileDlg(filename)) {
-		image = imread(filename, CV_LOAD_IMAGE_COLOR);
+Mat rotate(Mat src, double angle)
+{
+	Mat dst;
+	Point2f pt(src.cols / 2., src.rows / 2.);
+	Mat r = getRotationMatrix2D(pt, angle, 1.0);
+	warpAffine(src, dst, r, Size(src.cols, src.rows));
 
-		cutImage(image);
-	}
+	return dst;
 }
+
+double getDifference(Vec3b p1, Vec3b p2) {
+	int r = (p2[2] - p1[2]) * (p1[2] - p1[2]);
+	int g = (p2[1] - p1[1]) * (p2[1] - p1[1]);
+	int b = (p2[0] - p1[0]) * (p2[0] - p1[0]);
+	double dif = sqrt(r + b + g);
+	return dif;
+}
+
+//presupunem ca au aceeasi lungime
+double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
+	double diff = 0.0f;
+	for (int i = 0; i < e1.size(); i++) {
+		diff += getDifference(e1[i], e2[i]);
+	}
+	return diff;
+}
+
+std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
+	std::vector<Vec3b> row = src.row(r);
+	return row;
+}
+
+std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
+	std::vector<Vec3b> col = src.col(c);
+	return col;
+}
+
+
+
 
 void testOpenImage()
 {
@@ -132,94 +169,6 @@ void testOpenImagesFld()
 			break;
 	}
 }
-
-Mat rotate(Mat src, double angle)
-{
-	Mat dst;
-	Point2f pt(src.cols / 2., src.rows / 2.);
-	Mat r = getRotationMatrix2D(pt, angle, 1.0);
-	warpAffine(src, dst, r, Size(src.cols, src.rows));
-
-	return dst;
-}
-
-void testRotate() {
-
-	char filename[MAX_PATH];
-	openFileDlg(filename);
-
-	Mat src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
-	Mat dst = rotate(src, 90);
-
-	imshow("Source", src);
-	imshow("Destination", dst);
-	waitKey(0);
-}
-
-// Varianta Andrei - ???
-// double EuclideanDistance(Point p1, Point p2)
-// {
-// 	double x = p1.x - p2.x; //calculating number to square in next step
-// 	double y = p1.y - p2.y;
-// 	double dist;
-
-// 	dist = pow(x, 2) + pow(y, 2); //calculating Euclidean distance
-// 	dist = sqrt(dist);
-
-// 	return dist;
-// }
-
-// void distance() {
-// 	Mat m1 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-// 	Mat m2 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-
-// 	std::vector<double> distante;
-
-// 	for (int i = 0; i < m1.rows; i++) {
-// 		Point p1 = Point(i, m1.rows - 1);
-// 		Point p2 = Point(i, 0);
-// 		distante.push_back(EuclideanDistance(p1, p2));
-// 	}
-// }
-
-double getDifference(Vec3b pixelA, Vec3b pixelB) {
-	int r = (pixelA[2] - pixelB[2]) * (pixelA[2] - pixelB[2]);
-	int g = (pixelA[1] - pixelB[1]) * (pixelA[1] - pixelB[1]);
-	int b = (pixelA[0] - pixelB[0]) * (pixelA[0] - pixelB[0]);
-	double dif = sqrt(r + b + g);
-	return dif;
-}
-
-//presupunem ca au aceeasi lungime
-double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
-	double diff = 0.0f;
-	for (int i = 0; i < e1.size(); i++) {
-		diff += getDifference(e1[i], e2[i]);
-	}
-	return diff;
-}
-
-std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
-	std::vector<Vec3b> row = src.row(r);
-	return row;
-}
-
-std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
-	std::vector<Vec3b> col = src.col(c);
-	return col;
-}
-
-//void testDifference() {
-//	//int width = poza.cols();
-//	//int height = poza.rows();
-//	int *diferentePeColoane = new int[width - 1];
-//
-//	for (int j = 0; j < width - 1; j++) {
-//		for (int i = 1; i < height; i++) {
-//			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
-//		}
-//	}
-//}
 
 void testImageOpenAndSave()
 {
@@ -281,6 +230,54 @@ void testNegativeImage()
 		waitKey();
 	}
 }
+
+void testRotate() {
+
+	char filename[MAX_PATH];
+	openFileDlg(filename);
+
+	Mat src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+	Mat dst = rotate(src, 90);
+
+	imshow("Source", src);
+	imshow("Destination", dst);
+	waitKey(0);
+}
+
+// Varianta Andrei - ???
+// double EuclideanDistance(Point p1, Point p2)
+// {
+// 	double x = p1.x - p2.x; //calculating number to square in next step
+// 	double y = p1.y - p2.y;
+// 	double dist;
+// 	dist = pow(x, 2) + pow(y, 2); //calculating Euclidean distance
+// 	dist = sqrt(dist);
+// 	return dist;
+// }
+//
+// void distance() {
+// 	Mat m1 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+// 	Mat m2 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+// 	std::vector<double> distante;
+// 	for (int i = 0; i < m1.rows; i++) {
+// 		Point p1 = Point(i, m1.rows - 1);
+// 		Point p2 = Point(i, 0);
+// 		distante.push_back(EuclideanDistance(p1, p2));
+// 	}
+// }
+//
+//void testDifference() {
+//	//int width = poza.cols();
+//	//int height = poza.rows();
+//	int *diferentePeColoane = new int[width - 1];
+//
+//	for (int j = 0; j < width - 1; j++) {
+//		for (int i = 1; i < height; i++) {
+//			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
+//		}
+//	}
+//}
+
 
 int main() {
 	int op;
