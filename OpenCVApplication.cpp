@@ -219,13 +219,20 @@ int getDifference(Vec3b pixelA, Vec3b pixelB) {
 }
 
 void testDifference() {
-	int width = poza.cols();
-	int height = poza.rows();
+
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+
+	Mat_<uchar> img = imread(fname, CV_LOAD_COLOR);
+
+	int height = img.rows();
+	int width = img.cols();
+	
 	int *diferentePeColoane = new int[width - 1];
 
-	for (int j = 0; j < width - 1; j++) {
-		for (int i = 1; i < height; i++) {
-			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
+	for (int i = 1; i < height - 1 ; i++) {
+		for (int j = 1; j < width - 1; j++) {
+			diferentePeColoane[j] += getDifference(img(i, j), img(i, j + 1));
 		}
 	}
 }
