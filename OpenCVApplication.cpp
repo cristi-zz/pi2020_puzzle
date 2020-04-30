@@ -213,6 +213,23 @@ void distance(){
 
 }
 
+
+int getDifference(Vec3b pixelA, Vec3b pixelB) {
+	return abs(pixelA[0] - pixelB[0]) + abs(pixelA[1] - pixelB[1]) + abs(pixelA[2] - pixelB[2]);
+}
+
+void testDifference() {
+	int width = poza.cols();
+	int height = poza.rows();
+	int *diferentePeColoane = new int[width - 1];
+
+	for (int j = 0; j < width - 1; j++) {
+		for (int i = 1; i < height; i++) {
+			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
+		}
+	}
+}
+
 void testImageOpenAndSave()
 {
 	Mat src, dst;
