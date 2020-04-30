@@ -157,30 +157,30 @@ void testRotate() {
 }
 
 // Varianta Andrei - ???
-double EuclideanDistance(Point p1, Point p2)
-{
-	double x = p1.x - p2.x; //calculating number to square in next step
-	double y = p1.y - p2.y;
-	double dist;
+// double EuclideanDistance(Point p1, Point p2)
+// {
+// 	double x = p1.x - p2.x; //calculating number to square in next step
+// 	double y = p1.y - p2.y;
+// 	double dist;
 
-	dist = pow(x, 2) + pow(y, 2); //calculating Euclidean distance
-	dist = sqrt(dist);
+// 	dist = pow(x, 2) + pow(y, 2); //calculating Euclidean distance
+// 	dist = sqrt(dist);
 
-	return dist;
-}
+// 	return dist;
+// }
 
-void distance() {
-	Mat m1 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	Mat m2 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+// void distance() {
+// 	Mat m1 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+// 	Mat m2 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 
-	std::vector<double> distante;
+// 	std::vector<double> distante;
 
-	for (int i = 0; i < m1.rows; i++) {
-		Point p1 = Point(i, m1.rows - 1);
-		Point p2 = Point(i, 0);
-		distante.push_back(EuclideanDistance(p1, p2));
-	}
-}
+// 	for (int i = 0; i < m1.rows; i++) {
+// 		Point p1 = Point(i, m1.rows - 1);
+// 		Point p2 = Point(i, 0);
+// 		distante.push_back(EuclideanDistance(p1, p2));
+// 	}
+// }
 
 double getDifference(Vec3b pixelA, Vec3b pixelB) {
 	int r = (pixelA[2] - pixelB[2]) * (pixelA[2] - pixelB[2]);
@@ -208,25 +208,6 @@ std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
 	std::vector<Vec3b> col = src.col(c);
 	return col;
 }
-
-//void testDifference() {
-//
-//	char fname[MAX_PATH];
-//	openFileDlg(fname);
-//
-//	Mat_<uchar> img = imread(fname, CV_LOAD_COLOR);
-//
-//	int height = img.rows();
-//	int width = img.cols();
-//	
-//	int *diferentePeColoane = new int[width - 1];
-//
-//	for (int i = 1; i < height - 1 ; i++) {
-//		for (int j = 1; j < width - 1; j++) {
-//			diferentePeColoane[j] += getDifference(img(i, j), img(i, j + 1));
-//		}
-//	}
-//}
 
 //void testDifference() {
 //	//int width = poza.cols();
