@@ -32,95 +32,66 @@ void cutImage(Mat_<Vec3b> image) {
 	}
 	waitKey(0);
 }
-void matchImages(std::vector<Mat_<Vec3b>> cutImages)
-{
-	for (Mat_<Vec3b> img1 : cutImages)
-	{
-		for (Mat_<Vec3b> img2 : cutImages)
-		{
+
+void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
+	for (Mat_<Vec3b> img1 : cutImages) {
+		for (Mat_<Vec3b> img2 : cutImages) {
 			bool diff = false;
 			for (int i = 0; i < img1.rows; i++) {
 				for (int j = 0; j < img1.cols; j++) {
-					if (img1(i, j) != img2(i, j))
-					{
+					if (img1(i, j) != img2(i, j)) {
 						diff = true;
 					}
 				}
 			}
-			if (diff == true)
-			{
+			if (diff == true) {
 				bool noMatchEgde;
-				for (int j = 0;j < 3;j++)					//verific primele 3 coloane a imaginii img2
-				{
+				for (int j = 0;j < 3;j++) {		    //verific primele 3 coloane a imaginii img2
 					noMatchEgde = false;
-					for (int i = 0;i < img2.rows;i++)
-					{
-						if (img1(i, img1.cols - 1)[2] != img2(i, j)[2] || img1(i, img1.cols - 1)[1] != img2(i, j)[1] || img1(i, img1.cols - 1)[0] != img2(i, j)[0])
-						{
+					for (int i = 0;i < img2.rows;i++) {
+						if (img1(i, img1.cols - 1)[2] != img2(i, j)[2] || img1(i, img1.cols - 1)[1] != img2(i, j)[1] || img1(i, img1.cols - 1)[0] != img2(i, j)[0]) {
 							noMatchEgde = true;
 							break;
 						}
 					}
-
 				}
-				if (noMatchEgde == true)
-				{
-					for (int j = 0;j < 3;j++)				//verific primele 3 linii a imaginii img2
-					{
+				if (noMatchEgde == true) {
+					for (int j = 0;j < 3;j++) {		//verific primele 3 linii a imaginii img2
 						noMatchEgde = false;
-						for (int i = 0;i < img2.cols;i++)
-						{
-							if (img1(i, img1.cols - 1)[2] != img2(j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(j, img2.cols - 1 - i)[0])
-							{
+						for (int i = 0;i < img2.cols;i++) {
+							if (img1(i, img1.cols - 1)[2] != img2(j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(j, img2.cols - 1 - i)[0]) {
 								noMatchEgde = true;
 								break;
 							}
 						}
-
 					}
-					if (noMatchEgde == true)			//verific ultimele 3 coloane a imaginii img2
-					{
-						for (int j = 0;j < 3;j++)
-						{
+					if (noMatchEgde == true) {		//verific ultimele 3 coloane a imaginii img2
+						for (int j = 0;j < 3;j++) {
 							noMatchEgde = false;
-							for (int i = 0;i < img2.cols;i++)
-							{
-								if (img1(i, img1.cols - 1)[2] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[2] || img1(i, img1.cols - 1)[1] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[1] || img1(i, img1.cols - 1)[0] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[0])
-								{
+							for (int i = 0;i < img2.cols;i++) {
+								if (img1(i, img1.cols - 1)[2] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[2] || img1(i, img1.cols - 1)[1] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[1] || img1(i, img1.cols - 1)[0] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[0]) {
 									noMatchEgde = true;
 									break;
 								}
 							}
-
 						}
-						if (noMatchEgde == true)		//verific ultimele 3 linii a imaginii img2
-						{
-							for (int j = 0;j < 3;j++)
-							{
+						if (noMatchEgde == true) {	//verific ultimele 3 linii a imaginii img2
+							for (int j = 0;j < 3;j++) {
 								noMatchEgde = false;
-								for (int i = 0;i < img2.cols;i++)
-								{
-									if (img1(i, img1.cols - 1)[2] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[0])
-									{
+								for (int i = 0;i < img2.cols;i++) {
+									if (img1(i, img1.cols - 1)[2] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[0]) {
 										noMatchEgde = true;
 										break;
 									}
 								}
-
 							}
 						}
-
 					}
 				}
-
-
-
-
 			}
 
 		}
 	}
-
 }
 
 void stitch() {
@@ -298,11 +269,9 @@ void testNegativeImage()
 	}
 }
 
-int main()
-{
+int main() {
 	int op;
-	do
-	{
+	do {
 		system("cls");
 		destroyAllWindows();
 		printf("Menu:\n");
