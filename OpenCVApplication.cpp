@@ -5,30 +5,26 @@
 #include "common.h"
 
 
+
+std::vector<Mat_<Vec3b>> images;
 void cutToGrid(Mat_<Vec3b> image) {
-	std::vector<Mat_<Vec3b>> cutImages;
+	images.clear();
 	// grid de 3 x 3
 	int incrementVertical = (image.rows - 1) / 3; // inaltimea unei subimagini
 	int incrementHorizontal = (image.cols - 1) / 3; // latimea unei subimagini
+	Mat_<Vec3b> smallImage = Mat::zeros(incrementVertical, incrementHorizontal, CV_8UC3);
 
-	Mat_<Vec3b> smallImage = Mat(incrementVertical, incrementHorizontal, CV_8UC3);
-
+	int idx = 0;
 	smallImage = Mat(image, Rect(0, 0, incrementHorizontal, incrementVertical));
-	imshow("dadaa", smallImage);
 	for (int i = 0; i < image.rows - incrementVertical; i += incrementVertical) {
 		for (int j = 0; j < image.cols - incrementHorizontal; j += incrementHorizontal) {
 			smallImage = Mat(image, Rect(i, j, incrementHorizontal, incrementVertical));
-
-			cutImages.push_back(smallImage);
+			images.push_back(smallImage);
+			std::string filename = "../Images/cameraman" + std::to_string(idx) + ".jpg";
+			imwrite(filename, smallImage);
+			idx++;
 		}
 	}
-
-	imshow("Original Image", image);
-	for (int i = 0; i < cutImages.size(); i++) {
-		std::string imgName = "Cut image no " + std::to_string(i);
-		imshow(imgName, cutImages.at(i));
-	}
-	waitKey(0);
 }
 
 void stitch() {
@@ -101,13 +97,11 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 	}
 }
 
-Mat rotate(Mat src, double angle)
-{
-	Mat dst;
+Mat_<Vec3b> rotate(Mat_<Vec3b> src, double angle) {
+	Mat_<Vec3b> dst;
 	Point2f pt(src.cols / 2., src.rows / 2.);
 	Mat r = getRotationMatrix2D(pt, angle, 1.0);
 	warpAffine(src, dst, r, Size(src.cols, src.rows));
-
 	return dst;
 }
 
@@ -125,7 +119,26 @@ double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
 	for (int i = 0; i < e1.size(); i++) {
 		diff += getDifference(e1[i], e2[i]);
 	}
+	diff /= (double)e1.size();
 	return diff;
+}
+
+std::vector<double> checkImages(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
+	if (test == 1) {
+		std::vector<double> v;
+		v.push_back(checkEdge(src.col(src.cols-1), check.col(0)));
+		return v;
+	}
+	else {
+		std::vector<double> v;
+		for (int i = 0; i < 4; i++) {
+			double d = checkEdge(src.col(src.cols - 1), check.col(0));
+			v.push_back(d);
+			check = rotate(check, 90);
+		}
+		check = rotate(check, 90); //revenim la pozitia initiala
+		return v;
+	}
 }
 
 std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
@@ -137,7 +150,6 @@ std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
 	std::vector<Vec3b> col = src.col(c);
 	return col;
 }
-
 
 
 
