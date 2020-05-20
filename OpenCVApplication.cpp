@@ -163,8 +163,36 @@ std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, in
 		return v;
 	}
 }
+Mat_<Vec3b> minMatchRight(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg)
+{
+	
+	double min = MAXINT;
+	int minIndex = 10;
+	for (int i = 0;i < vectImg.size();i++)
+	{
+		std::vector<double> score;
+		score=checkImages_translate(src, vectImg[i], 0);
+		if(score[0]<min)   //se verifica minim pt scorul dintre ultima coloana a src si prima coloana a imaginii de test
+		{
+			min = score[0];
+			minIndex = i;
+		}
+	}
+	vectImg.erase(vectImg.begin() + minIndex);
 
+	return vectImg[minIndex];
+}
+std::vector<Mat_<Vec3b>> createRow(Mat_<Vec3b> src,std::vector<Mat_<Vec3b>> vectImg)
+{
+	std::vector<Mat_<Vec3b>> row(3);
+	row.push_back(src);
+	Mat_<Vec3b> imgMid = minMatchRight(src, vectImg);
+	row.push_back(imgMid);
+	Mat_<Vec3b> imgRight = minMatchRight(imgMid, vectImg);
+	row.push_back(imgRight);
+	return row;
 
+}
 std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
 	std::vector<Vec3b> row = src.row(r);
 	return row;
