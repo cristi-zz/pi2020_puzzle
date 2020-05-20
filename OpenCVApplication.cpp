@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "common.h"
+#include "opencv2/stitching.hpp" 
+
 
 
 
@@ -168,23 +170,24 @@ Mat_<Vec3b> minMatchRight(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg)
 	
 	double min = MAXINT;
 	int minIndex = 10;
+	printf("%d ", vectImg.size());
 	for (int i = 0;i < vectImg.size();i++)
 	{
 		std::vector<double> score;
-		score=checkImages_translate(src, vectImg[i], 0);
+		score=checkImages(src, vectImg[i], 0);//
 		if(score[0]<min)   //se verifica minim pt scorul dintre ultima coloana a src si prima coloana a imaginii de test
 		{
 			min = score[0];
 			minIndex = i;
 		}
 	}
-	vectImg.erase(vectImg.begin() + minIndex);
+	//vectImg.erase(vectImg.begin() + minIndex);
 
 	return vectImg[minIndex];
 }
 std::vector<Mat_<Vec3b>> createRow(Mat_<Vec3b> src,std::vector<Mat_<Vec3b>> vectImg)
 {
-	std::vector<Mat_<Vec3b>> row(3);
+	std::vector<Mat_<Vec3b>> row;//
 	row.push_back(src);
 	Mat_<Vec3b> imgMid = minMatchRight(src, vectImg);
 	row.push_back(imgMid);
@@ -341,8 +344,69 @@ void testRotate() {
 //		}
 //	}
 //}
+void testCreateRow()
+{
+	Mat_<Vec3b> src = imread("Images/cameraman0.jpg");
+	Mat_<Vec3b> img1 = imread("Images/cameraman1.jpg");
+	Mat_<Vec3b> img2 = imread("Images/cameraman2.jpg");
+	Mat_<Vec3b> img3 = imread("Images/cameraman3.jpg");
+	Mat_<Vec3b> img4 = imread("Images/cameraman4.jpg");
+	Mat_<Vec3b> img5 = imread("Images/cameraman5.jpg");
+	Mat_<Vec3b> img6 = imread("Images/cameraman6.jpg");
+	Mat_<Vec3b> img7 = imread("Images/cameraman7.jpg");
+	Mat_<Vec3b> img8 = imread("Images/cameraman8.jpg");
+	std::vector<Mat_<Vec3b>> imgs;
+	imgs.push_back(img3);
+	imgs.push_back(img8);
+	imgs.push_back(img1);
+	imgs.push_back(img5);
+	imgs.push_back(img6);
+	imgs.push_back(img4);
+	imgs.push_back(img7);
+	imgs.push_back(img2);
+	std::vector<Mat_<Vec3b>> row(3);
+	row=createRow(src, imgs);
+	for (int i = 0;i < 3;i++)
+	{
 
+		imshow(std::to_string(i), row[i]);
 
+	}
+	Stitcher::Mode mode = Stitcher::PANORAMA;
+	//Mat_<Vec3b> dest = Mat::zeros(src.rows - 1, (src.cols - 1) * 3, CV_8UC3);
+	Mat_<Vec3b> dest(src.rows, (src.cols) * 3);
+	for(int i=0;i<src.rows;i++)
+	{
+		for (int j = 0;j < src.cols;j++)
+		{
+			dest(i, j) = row[0](i, j);
+		}
+	}
+	for (int i = 0;i < row[1].rows;i++)
+	{
+		for (int j = 0;j < row[1].cols;j++)
+		{
+			dest(i, j+ src.cols) = row[1](i, j);
+		}
+	}
+	for (int i = 0;i < row[2].rows;i++)
+	{
+		for (int j = 0;j < row[2].cols;j++)
+		{
+			dest(i , j + row[0].cols+row[1].cols) = row[2](i, j);
+		}
+	}
+	
+	imwrite("result.jpg", dest);
+	imshow("Result", dest);
+	/*imshow("Img1", row[0]);
+	imshow("Img2", row[1]);
+	imshow("Img3", row[2]);*/
+	
+
+	
+	waitKey(0);
+}
 int main() {
 	int op;
 	do {
@@ -354,6 +418,7 @@ int main() {
 		printf(" 3 - Negative image\n");
 		printf(" 4 - Cut open image\n");
 		printf(" 5 - Test rotate\n");
+		printf(" 6 - Create row\n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d", &op);
@@ -374,6 +439,8 @@ int main() {
 		case 5:
 			testRotate();
 			break;
+		case 6:
+			testCreateRow();
 		}
 	} while (op != 0);
 	return 0;
