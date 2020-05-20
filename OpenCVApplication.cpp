@@ -36,7 +36,7 @@ void stitch() {
 	}
 }
 
-void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
+/*void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 	for (Mat_<Vec3b> img1 : cutImages) {
 		for (Mat_<Vec3b> img2 : cutImages) {
 			bool diff = false;
@@ -95,7 +95,7 @@ void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
 
 		}
 	}
-}
+}*/
 
 Mat_<Vec3b> rotate(Mat_<Vec3b> src, double angle) {
 	Mat_<Vec3b> dst;
@@ -140,6 +140,30 @@ std::vector<double> checkImages(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0
 		return v;
 	}
 }
+
+std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
+	if (test == 1) {																		 
+		std::vector<double> v;
+		v.push_back(checkEdge(src.col(src.cols - 1), check.col(0)));
+		return v;
+	}
+	else {
+		std::vector<double> v;
+	
+		double d = checkEdge(src.col(src.cols - 1), check.col(0));  //translatare check in dreapta
+		v.push_back(d);
+		d= checkEdge(src.row(0), check.row(check.rows-1));			 //translatare check sus
+		v.push_back(d);
+		d = checkEdge(src.col(0), check.col(check.cols - 1));		 //translatare check in stanga
+		v.push_back(d);
+		d = checkEdge(src.row(src.rows-1), check.row(0));			 //translatare check jos
+		v.push_back(d);
+		
+		
+		return v;
+	}
+}
+
 
 std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
 	std::vector<Vec3b> row = src.row(r);
