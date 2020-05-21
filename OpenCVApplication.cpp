@@ -151,7 +151,6 @@ std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, in
 	}
 	else {
 		std::vector<double> v;
-	
 		double d = checkEdge(src.col(src.cols - 1), check.col(0));  //translatare check in dreapta
 		v.push_back(d);
 		d= checkEdge(src.row(0), check.row(check.rows-1));			 //translatare check sus
@@ -163,6 +162,27 @@ std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, in
 		
 		
 		return v;
+	}
+}
+
+void testCheckImages() {
+	char filename[MAX_PATH];
+	Mat_<Vec3b> image;
+	while (openFileDlg(filename)) {
+		image = imread(filename, CV_LOAD_IMAGE_COLOR);
+		cutToGrid(image);
+
+		Mat_<Vec3b> src = images.at(0);
+		std::random_shuffle(images.begin(), images.end());
+		std::vector<double> v = checkImages(src, images.at(1));
+		printf("Valori din verificare: ");
+		for (int i = 0; i < 4; i++)
+			printf("%.3f ", v.at(i));
+
+		imshow("Source", src);
+		imshow("Check", images.at(1));
+		waitKey(0);
+
 	}
 }
 
@@ -206,8 +226,7 @@ std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
 	return col;
 }
 
-void detectieContur()
-{
+void detectieContur() {
 	char fname[MAX_PATH];
 	openFileDlg(fname);
 	cv::Mat image = cv::imread(fname);
@@ -438,6 +457,7 @@ void testCreateRow()
 	
 	waitKey(0);
 }
+
 int main() {
 	int op;
 	do {
@@ -450,6 +470,8 @@ int main() {
 		printf(" 4 - Cut open image\n");
 		printf(" 5 - Test rotate\n");
 		printf(" 6 - Create row\n");
+		printf(" 7 - Detectie contur\n");
+		printf(" 8 - Distanta intre 2 imagini\n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d", &op);
@@ -472,6 +494,13 @@ int main() {
 			break;
 		case 6:
 			testCreateRow();
+			break;
+		case 7:
+			detectieContur();
+			break;
+		case 8:
+			testCheckImages();
+			break;
 		}
 	} while (op != 0);
 	return 0;
