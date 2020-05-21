@@ -165,6 +165,7 @@ std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, in
 		return v;
 	}
 }
+
 Mat_<Vec3b> minMatchRight(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg)
 {
 	
@@ -200,12 +201,42 @@ std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
 	std::vector<Vec3b> row = src.row(r);
 	return row;
 }
-
 std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
 	std::vector<Vec3b> col = src.col(c);
 	return col;
 }
 
+void detectieContur()
+{
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+	cv::Mat image = cv::imread(fname);
+
+	//Prepare the image for findContours
+	cv::cvtColor(image, image, CV_BGR2GRAY);
+	cv::threshold(image, image, 128, 255, CV_THRESH_BINARY);
+
+	//Find the contours. Use the contourOutput Mat so the original image doesn't get overwritten
+	std::vector<std::vector<cv::Point> > contours;
+	cv::Mat contourOutput = image.clone();
+	cv::findContours(contourOutput, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+
+	//Draw the contours
+	cv::Mat contourImage(image.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+	cv::Scalar colors[3];
+	colors[0] = cv::Scalar(255, 0, 0);
+	colors[1] = cv::Scalar(0, 255, 0);
+	colors[2] = cv::Scalar(0, 0, 255);
+	for (size_t idx = 0; idx < contours.size(); idx++) {
+		cv::drawContours(contourImage, contours, idx, colors[idx % 3]);
+	}
+
+	cv::imshow("Input Image", image);
+	cvMoveWindow("Input Image", 0, 0);
+	cv::imshow("Contours", contourImage);
+	cvMoveWindow("Contours", 200, 0);
+	cv::waitKey(0);
+}
 
 
 void testOpenImage()
