@@ -7,37 +7,6 @@
 
 std::vector<Mat_<Vec3b>> images;
 
-void detectieContur() {
-	char fname[MAX_PATH];
-	openFileDlg(fname);
-	cv::Mat image = cv::imread(fname);
-
-	//Prepare the image for findContours
-	cv::cvtColor(image, image, CV_BGR2GRAY);
-	cv::threshold(image, image, 128, 255, CV_THRESH_BINARY);
-
-	//Find the contours. Use the contourOutput Mat so the original image doesn't get overwritten
-	std::vector<std::vector<cv::Point> > contours;
-	cv::Mat contourOutput = image.clone();
-	cv::findContours(contourOutput, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-
-	//Draw the contours
-	cv::Mat contourImage(image.size(), CV_8UC3, cv::Scalar(0, 0, 0));
-	cv::Scalar colors[3];
-	colors[0] = cv::Scalar(255, 0, 0);
-	colors[1] = cv::Scalar(0, 255, 0);
-	colors[2] = cv::Scalar(0, 0, 255);
-	for (size_t idx = 0; idx < contours.size(); idx++) {
-		cv::drawContours(contourImage, contours, idx, colors[idx % 3]);
-	}
-
-	cv::imshow("Input Image", image);
-	cvMoveWindow("Input Image", 0, 0);
-	cv::imshow("Contours", contourImage);
-	cvMoveWindow("Contours", 200, 0);
-	cv::waitKey(0);
-}
-
 void testOpenImage()
 {
 	char fname[MAX_PATH];
@@ -192,7 +161,7 @@ double euclidian_difference(Vec3b p1, Vec3b p2) {
 	return dif;
 }
 
-double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
+double euclidianDiffEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
 	//presupunem ca au aceeasi lungime
 	double diff = 0.0f;
 	for (int i = 0; i < e1.size(); i++) {
@@ -202,21 +171,21 @@ double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
 	return diff;
 }
 
-std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
+std::vector<double> compareImages(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
 	if (test == 1) {
 		std::vector<double> v;
-		v.push_back(checkEdge(src.col(src.cols - 1), check.col(0)));
+		v.push_back(euclidianDiffEdge(src.col(src.cols - 1), check.col(0)));
 		return v;
 	}
 	else {
 		std::vector<double> v;
-		double d = checkEdge(src.col(src.cols - 1), check.col(0));  //translatare check in dreapta
+		double d = euclidianDiffEdge(src.col(src.cols - 1), check.col(0));  //translatare check in dreapta
 		v.push_back(d);
-		d = checkEdge(src.row(0), check.row(check.rows - 1));			 //translatare check sus
+		d = euclidianDiffEdge(src.row(0), check.row(check.rows - 1));			 //translatare check sus
 		v.push_back(d);
-		d = checkEdge(src.col(0), check.col(check.cols - 1));		 //translatare check in stanga
+		d = euclidianDiffEdge(src.col(0), check.col(check.cols - 1));		 //translatare check in stanga
 		v.push_back(d);
-		d = checkEdge(src.row(src.rows - 1), check.row(0));			 //translatare check jos
+		d = euclidianDiffEdge(src.row(src.rows - 1), check.row(0));			 //translatare check jos
 		v.push_back(d);
 
 
@@ -230,7 +199,7 @@ Mat_<Vec3b> minMatchRight(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg) {
 	//printf("%d ", vectImg.size());
 	for (int i = 0; i < vectImg.size(); i++) {
 		std::vector<double> score;
-		score = checkImages_translate(src, vectImg.at(i));//
+		score = compareImages(src, vectImg.at(i));//
 		if (score[0] < min) {   //se verifica minim pt scorul dintre ultima coloana a src si prima coloana a imaginii de test
 			min = score[0];
 			minIndex = i;
@@ -260,17 +229,48 @@ Mat_<Vec3b> rotate(Mat_<Vec3b> src, double angle) {
 	return dst;
 }
 
+void detectieContur() {
+	char fname[MAX_PATH];
+	openFileDlg(fname);
+	cv::Mat image = cv::imread(fname);
+
+	//Prepare the image for findContours
+	cv::cvtColor(image, image, CV_BGR2GRAY);
+	cv::threshold(image, image, 128, 255, CV_THRESH_BINARY);
+
+	//Find the contours. Use the contourOutput Mat so the original image doesn't get overwritten
+	std::vector<std::vector<cv::Point> > contours;
+	cv::Mat contourOutput = image.clone();
+	cv::findContours(contourOutput, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+
+	//Draw the contours
+	cv::Mat contourImage(image.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+	cv::Scalar colors[3];
+	colors[0] = cv::Scalar(255, 0, 0);
+	colors[1] = cv::Scalar(0, 255, 0);
+	colors[2] = cv::Scalar(0, 0, 255);
+	for (size_t idx = 0; idx < contours.size(); idx++) {
+		cv::drawContours(contourImage, contours, idx, colors[idx % 3]);
+	}
+
+	cv::imshow("Input Image", image);
+	cvMoveWindow("Input Image", 0, 0);
+	cv::imshow("Contours", contourImage);
+	cvMoveWindow("Contours", 200, 0);
+	cv::waitKey(0);
+}
+
 std::vector<double> checkImages(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
 	// rotate
 	if (test == 1) {
 		std::vector<double> v;
-		v.push_back(checkEdge(src.col(src.cols - 1), check.col(0)));
+		v.push_back(euclidianDiffEdge(src.col(src.cols - 1), check.col(0)));
 		return v;
 	}
 	else {
 		std::vector<double> v;
 		for (int i = 0; i < 4; i++) {
-			double d = checkEdge(src.col(src.cols - 1), check.col(0));
+			double d = euclidianDiffEdge(src.col(src.cols - 1), check.col(0));
 			v.push_back(d);
 			check = rotate(check, 90);
 		}
@@ -287,7 +287,7 @@ void testCheckImages() {
 	Mat_<Vec3b> src = images.at(0);
 
 	std::random_shuffle(images.begin(), images.end());
-	std::vector<double> v = checkImages_translate(src, images.at(1));
+	std::vector<double> v = compareImages(src, images.at(1));
 
 	printf("Valori din verificare: ");
 	float min = 1505, minIdx = 0;
@@ -372,6 +372,7 @@ void testCreateRow() {
 	imshow("Result", dest);
 	waitKey(0);
 }
+
 
 
 int main() {
