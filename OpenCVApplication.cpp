@@ -5,226 +5,7 @@
 #include "common.h"
 #include "opencv2/stitching.hpp" 
 
-
-
-
 std::vector<Mat_<Vec3b>> images;
-void cutToGrid(Mat_<Vec3b> image) {
-	images.clear();
-	// grid de 3 x 3
-	int incrementVertical = (image.rows - 1) / 3; // inaltimea unei subimagini
-	int incrementHorizontal = (image.cols - 1) / 3; // latimea unei subimagini
-	Mat_<Vec3b> smallImage = Mat::zeros(incrementVertical, incrementHorizontal, CV_8UC3);
-
-	int idx = 0;
-	smallImage = Mat(image, Rect(0, 0, incrementHorizontal, incrementVertical));
-	for (int i = 0; i < image.rows - incrementVertical; i += incrementVertical) {
-		for (int j = 0; j < image.cols - incrementHorizontal; j += incrementHorizontal) {
-			smallImage = Mat(image, Rect(i, j, incrementHorizontal, incrementVertical));
-			images.push_back(smallImage);
-			std::string filename = "../Images/cameraman" + std::to_string(idx) + ".jpg";
-			imwrite(filename, smallImage);
-			idx++;
-		}
-	}
-}
-
-void stitch() {
-	Mat_<Vec3b> image;
-	char filename[MAX_PATH];
-	while (openFileDlg(filename)) {
-		image = imread(filename, CV_LOAD_IMAGE_COLOR);
-		cutToGrid(image);
-	}
-}
-
-/*void matchImages(std::vector<Mat_<Vec3b>> cutImages) {
-	for (Mat_<Vec3b> img1 : cutImages) {
-		for (Mat_<Vec3b> img2 : cutImages) {
-			bool diff = false;
-			for (int i = 0; i < img1.rows; i++) {
-				for (int j = 0; j < img1.cols; j++) {
-					if (img1(i, j) != img2(i, j)) {
-						diff = true;
-					}
-				}
-			}
-			if (diff == true) {
-				bool noMatchEgde;
-				for (int j = 0; j < 3; j++) {		    //verific primele 3 coloane a imaginii img2
-					noMatchEgde = false;
-					for (int i = 0; i < img2.rows; i++) {
-						if (img1(i, img1.cols - 1)[2] != img2(i, j)[2] || img1(i, img1.cols - 1)[1] != img2(i, j)[1] || img1(i, img1.cols - 1)[0] != img2(i, j)[0]) {
-							noMatchEgde = true;
-							break;
-						}
-					}
-				}
-				if (noMatchEgde == true) {
-					for (int j = 0; j < 3; j++) {		//verific primele 3 linii a imaginii img2
-						noMatchEgde = false;
-						for (int i = 0; i < img2.cols; i++) {
-							if (img1(i, img1.cols - 1)[2] != img2(j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(j, img2.cols - 1 - i)[0]) {
-								noMatchEgde = true;
-								break;
-							}
-						}
-					}
-					if (noMatchEgde == true) {		//verific ultimele 3 coloane a imaginii img2
-						for (int j = 0; j < 3; j++) {
-							noMatchEgde = false;
-							for (int i = 0; i < img2.cols; i++) {
-								if (img1(i, img1.cols - 1)[2] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[2] || img1(i, img1.cols - 1)[1] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[1] || img1(i, img1.cols - 1)[0] != img2(img2.cols - 1 - i, img2.cols - 1 - j)[0]) {
-									noMatchEgde = true;
-									break;
-								}
-							}
-						}
-						if (noMatchEgde == true) {	//verific ultimele 3 linii a imaginii img2
-							for (int j = 0; j < 3; j++) {
-								noMatchEgde = false;
-								for (int i = 0; i < img2.cols; i++) {
-									if (img1(i, img1.cols - 1)[2] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[2] || img1(i, img1.cols - 1)[1] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[1] || img1(i, img1.cols - 1)[0] != img2(img2.rows - 1 - j, img2.cols - 1 - i)[0]) {
-										noMatchEgde = true;
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-		}
-	}
-}*/
-
-Mat_<Vec3b> rotate(Mat_<Vec3b> src, double angle) {
-	Mat_<Vec3b> dst;
-	Point2f pt(src.cols / 2., src.rows / 2.);
-	Mat r = getRotationMatrix2D(pt, angle, 1.0);
-	warpAffine(src, dst, r, Size(src.cols, src.rows));
-	return dst;
-}
-
-double getDifference(Vec3b p1, Vec3b p2) {
-	int r = (p2[2] - p1[2]) * (p1[2] - p1[2]);
-	int g = (p2[1] - p1[1]) * (p2[1] - p1[1]);
-	int b = (p2[0] - p1[0]) * (p2[0] - p1[0]);
-	double dif = sqrt(r + b + g);
-	return dif;
-}
-
-//presupunem ca au aceeasi lungime
-double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
-	double diff = 0.0f;
-	for (int i = 0; i < e1.size(); i++) {
-		diff += getDifference(e1[i], e2[i]);
-	}
-	diff /= (double)e1.size();
-	return diff;
-}
-
-std::vector<double> checkImages(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
-	if (test == 1) {
-		std::vector<double> v;
-		v.push_back(checkEdge(src.col(src.cols-1), check.col(0)));
-		return v;
-	}
-	else {
-		std::vector<double> v;
-		for (int i = 0; i < 4; i++) {
-			double d = checkEdge(src.col(src.cols - 1), check.col(0));
-			v.push_back(d);
-			check = rotate(check, 90);
-		}
-		check = rotate(check, 90); //revenim la pozitia initiala
-		return v;
-	}
-}
-
-std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
-	if (test == 1) {																		 
-		std::vector<double> v;
-		v.push_back(checkEdge(src.col(src.cols - 1), check.col(0)));
-		return v;
-	}
-	else {
-		std::vector<double> v;
-		double d = checkEdge(src.col(src.cols - 1), check.col(0));  //translatare check in dreapta
-		v.push_back(d);
-		d= checkEdge(src.row(0), check.row(check.rows-1));			 //translatare check sus
-		v.push_back(d);
-		d = checkEdge(src.col(0), check.col(check.cols - 1));		 //translatare check in stanga
-		v.push_back(d);
-		d = checkEdge(src.row(src.rows-1), check.row(0));			 //translatare check jos
-		v.push_back(d);
-		
-		
-		return v;
-	}
-}
-
-void testCheckImages() {
-	char filename[MAX_PATH];
-	Mat_<Vec3b> image;
-	while (openFileDlg(filename)) {
-		image = imread(filename, CV_LOAD_IMAGE_COLOR);
-		cutToGrid(image);
-
-		Mat_<Vec3b> src = images.at(0);
-		std::random_shuffle(images.begin(), images.end());
-		std::vector<double> v = checkImages(src, images.at(1));
-		printf("Valori din verificare: ");
-		for (int i = 0; i < 4; i++)
-			printf("%.3f ", v.at(i));
-
-		imshow("Source", src);
-		imshow("Check", images.at(1));
-		waitKey(0);
-
-	}
-}
-
-Mat_<Vec3b> minMatchRight(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg)
-{
-	
-	double min = MAXINT;
-	int minIndex = 10;
-	printf("%d ", vectImg.size());
-	for (int i = 0;i < vectImg.size();i++)
-	{
-		std::vector<double> score;
-		score=checkImages(src, vectImg[i], 0);//
-		if(score[0]<min)   //se verifica minim pt scorul dintre ultima coloana a src si prima coloana a imaginii de test
-		{
-			min = score[0];
-			minIndex = i;
-		}
-	}
-	//vectImg.erase(vectImg.begin() + minIndex);
-
-	return vectImg[minIndex];
-}
-std::vector<Mat_<Vec3b>> createRow(Mat_<Vec3b> src,std::vector<Mat_<Vec3b>> vectImg)
-{
-	std::vector<Mat_<Vec3b>> row;//
-	row.push_back(src);
-	Mat_<Vec3b> imgMid = minMatchRight(src, vectImg);
-	row.push_back(imgMid);
-	Mat_<Vec3b> imgRight = minMatchRight(imgMid, vectImg);
-	row.push_back(imgRight);
-	return row;
-
-}
-std::vector<Vec3b> extractRow(Mat_<Vec3b> src, int r) {
-	std::vector<Vec3b> row = src.row(r);
-	return row;
-}
-std::vector<Vec3b> extractColumn(Mat_<Vec3b> src, int c) {
-	std::vector<Vec3b> col = src.col(c);
-	return col;
-}
 
 void detectieContur() {
 	char fname[MAX_PATH];
@@ -256,7 +37,6 @@ void detectieContur() {
 	cvMoveWindow("Contours", 200, 0);
 	cv::waitKey(0);
 }
-
 
 void testOpenImage()
 {
@@ -354,57 +134,204 @@ void testRotate() {
 	openFileDlg(filename);
 
 	Mat src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
-	Mat dst = rotate(src, 90);
+	Mat dst;
+	cv::rotate(src, dst, 90);
 
 	imshow("Source", src);
 	imshow("Destination", dst);
 	waitKey(0);
 }
 
-// Varianta Andrei - ???
-// double EuclideanDistance(Point p1, Point p2)
-// {
-// 	double x = p1.x - p2.x; //calculating number to square in next step
-// 	double y = p1.y - p2.y;
-// 	double dist;
-// 	dist = pow(x, 2) + pow(y, 2); //calculating Euclidean distance
-// 	dist = sqrt(dist);
-// 	return dist;
-// }
-//
-// void distance() {
-// 	Mat m1 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-// 	Mat m2 = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-// 	std::vector<double> distante;
-// 	for (int i = 0; i < m1.rows; i++) {
-// 		Point p1 = Point(i, m1.rows - 1);
-// 		Point p2 = Point(i, 0);
-// 		distante.push_back(EuclideanDistance(p1, p2));
-// 	}
-// }
-//
-//void testDifference() {
-//	//int width = poza.cols();
-//	//int height = poza.rows();
-//	int *diferentePeColoane = new int[width - 1];
-//
-//	for (int j = 0; j < width - 1; j++) {
-//		for (int i = 1; i < height; i++) {
-//			diferentePeColoane[j] += getDifference(poza.at<Vec3b>(i, j), poza.at<Vec3b>(i, j + 1));
-//		}
-//	}
-//}
-void testCreateRow()
-{
-	Mat_<Vec3b> src = imread("Images/cameraman0.jpg");
-	Mat_<Vec3b> img1 = imread("Images/cameraman1.jpg");
-	Mat_<Vec3b> img2 = imread("Images/cameraman2.jpg");
-	Mat_<Vec3b> img3 = imread("Images/cameraman3.jpg");
-	Mat_<Vec3b> img4 = imread("Images/cameraman4.jpg");
-	Mat_<Vec3b> img5 = imread("Images/cameraman5.jpg");
-	Mat_<Vec3b> img6 = imread("Images/cameraman6.jpg");
-	Mat_<Vec3b> img7 = imread("Images/cameraman7.jpg");
-	Mat_<Vec3b> img8 = imread("Images/cameraman8.jpg");
+
+
+
+// PROIECT DECUPARE IMAGINI
+
+void formate_grid_helper(Mat_<Vec3b> image) {
+	images.clear();
+	// grid de 3 x 3
+	if (image.rows != image.cols) {
+		printf("Imaginea nu este patrata\n");
+		exit(1);
+	}
+	int v = (image.rows - 1) / 3; // inaltimea unei subimagini
+	int h = (image.cols - 1) / 3; // latimea unei subimagini
+	int idx = 0;
+
+	Mat_<Vec3b> mini_images = Mat::zeros(v, h, CV_8UC3);
+	mini_images = Mat(image, Rect(0, 0, v, h));
+
+	for (int i = 0; i < image.rows - v; i += v) {
+		for (int j = 0; j < image.cols - h; j += h) {
+			mini_images = Mat(image, Rect(i, j, h, v));
+			images.push_back(mini_images);
+			std::string filename = "../Images/GRID_IMAGE" + std::to_string(idx) + ".jpg";
+			imwrite(filename, mini_images);
+			idx++;
+		}
+	}
+}
+
+void formate_grid() {
+	Mat_<Vec3b> source;
+	char filename[MAX_PATH];
+	while (openFileDlg(filename)) {
+		source = imread(filename, CV_LOAD_IMAGE_COLOR);
+		formate_grid_helper(source);
+
+		printf("Imagine decupata\n");
+		break;
+	}
+}
+
+double euclidian_difference(Vec3b p1, Vec3b p2) {
+	int r = (p2[2] - p1[2]) * (p1[2] - p1[2]);
+	int g = (p2[1] - p1[1]) * (p2[1] - p1[1]);
+	int b = (p2[0] - p1[0]) * (p2[0] - p1[0]);
+	double dif = sqrt(r + b + g);
+	return dif;
+}
+
+double checkEdge(std::vector<Vec3b> e1, std::vector<Vec3b> e2) {
+	//presupunem ca au aceeasi lungime
+	double diff = 0.0f;
+	for (int i = 0; i < e1.size(); i++) {
+		diff += euclidian_difference(e1[i], e2[i]);
+	}
+	diff /= (double)e1.size();
+	return diff;
+}
+
+std::vector<double> checkImages_translate(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
+	if (test == 1) {
+		std::vector<double> v;
+		v.push_back(checkEdge(src.col(src.cols - 1), check.col(0)));
+		return v;
+	}
+	else {
+		std::vector<double> v;
+		double d = checkEdge(src.col(src.cols - 1), check.col(0));  //translatare check in dreapta
+		v.push_back(d);
+		d = checkEdge(src.row(0), check.row(check.rows - 1));			 //translatare check sus
+		v.push_back(d);
+		d = checkEdge(src.col(0), check.col(check.cols - 1));		 //translatare check in stanga
+		v.push_back(d);
+		d = checkEdge(src.row(src.rows - 1), check.row(0));			 //translatare check jos
+		v.push_back(d);
+
+
+		return v;
+	}
+}
+
+Mat_<Vec3b> minMatchRight(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg) {
+	double min = MAXINT;
+	int minIndex = 10;
+	//printf("%d ", vectImg.size());
+	for (int i = 0; i < vectImg.size(); i++) {
+		std::vector<double> score;
+		score = checkImages_translate(src, vectImg.at(i));//
+		if (score[0] < min) {   //se verifica minim pt scorul dintre ultima coloana a src si prima coloana a imaginii de test
+			min = score[0];
+			minIndex = i;
+		}
+	}
+	//vectImg.erase(vectImg.begin() + minIndex);
+
+	return vectImg[minIndex];
+}
+
+std::vector<Mat_<Vec3b>> createRow(Mat_<Vec3b> src, std::vector<Mat_<Vec3b>> vectImg) {
+	std::vector<Mat_<Vec3b>> row;//
+	row.push_back(src);
+	Mat_<Vec3b> imgMid = minMatchRight(src, vectImg);
+	row.push_back(imgMid);
+	Mat_<Vec3b> imgRight = minMatchRight(imgMid, vectImg);
+	row.push_back(imgRight);
+	return row;
+
+}
+
+Mat_<Vec3b> rotate(Mat_<Vec3b> src, double angle) {
+	Mat_<Vec3b> dst;
+	Point2f pt(src.cols / 2., src.rows / 2.);
+	Mat r = getRotationMatrix2D(pt, angle, 1.0);
+	warpAffine(src, dst, r, Size(src.cols, src.rows));
+	return dst;
+}
+
+std::vector<double> checkImages(Mat_<Vec3b> src, Mat_<Vec3b> check, int test = 0) {
+	// rotate
+	if (test == 1) {
+		std::vector<double> v;
+		v.push_back(checkEdge(src.col(src.cols - 1), check.col(0)));
+		return v;
+	}
+	else {
+		std::vector<double> v;
+		for (int i = 0; i < 4; i++) {
+			double d = checkEdge(src.col(src.cols - 1), check.col(0));
+			v.push_back(d);
+			check = rotate(check, 90);
+		}
+		check = rotate(check, 90); //revenim la pozitia initiala
+		return v;
+	}
+}
+
+void testCheckImages() {
+	char filename[MAX_PATH];
+	Mat_<Vec3b> image;
+	formate_grid();
+
+	Mat_<Vec3b> src = images.at(0);
+
+	std::random_shuffle(images.begin(), images.end());
+	std::vector<double> v = checkImages_translate(src, images.at(1));
+
+	printf("Valori din verificare: ");
+	float min = 1505, minIdx = 0;
+	for (int i = 0; i < 4; i++) {
+		if (v.at(i) < min) {
+			minIdx = i;
+			min = v.at(i);
+		}
+		printf("%.3f ", v.at(i));
+	}
+
+	Mat_<Vec3b> dest;
+
+	if (minIdx == 0) {
+		cv::hconcat(src, images.at(1), dest);
+	}
+	else if (minIdx == 1) {
+		cv::vconcat(images.at(1), src, dest);
+	}
+	else if (minIdx == 2) {
+		cv::hconcat(images.at(1), src, dest);
+	}
+	else if (minIdx == 3) {
+		cv::vconcat(src, images.at(1), dest);
+	}
+
+	imshow("Final image", dest);
+
+	imshow("Source", src);
+	imshow("Check", images.at(1));
+	waitKey(0);
+
+}
+
+void testCreateRow() {
+	Mat_<Vec3b> src = imread("Images/GRID_IMAGE0.jpg");
+	Mat_<Vec3b> img1 = imread("Images/GRID_IMAGE1.jpg");
+	Mat_<Vec3b> img2 = imread("Images/GRID_IMAGE2.jpg");
+	Mat_<Vec3b> img3 = imread("Images/GRID_IMAGE3.jpg");
+	Mat_<Vec3b> img4 = imread("Images/GRID_IMAGE4.jpg");
+	Mat_<Vec3b> img5 = imread("Images/GRID_IMAGE5.jpg");
+	Mat_<Vec3b> img6 = imread("Images/GRID_IMAGE6.jpg");
+	Mat_<Vec3b> img7 = imread("Images/GRID_IMAGE7.jpg");
+	Mat_<Vec3b> img8 = imread("Images/GRID_IMAGE8.jpg");
 	std::vector<Mat_<Vec3b>> imgs;
 	imgs.push_back(img3);
 	imgs.push_back(img8);
@@ -414,49 +341,38 @@ void testCreateRow()
 	imgs.push_back(img4);
 	imgs.push_back(img7);
 	imgs.push_back(img2);
+
+
+	std::random_shuffle(imgs.begin(), imgs.end());
 	std::vector<Mat_<Vec3b>> row(3);
-	row=createRow(src, imgs);
-	for (int i = 0;i < 3;i++)
-	{
 
+	row = createRow(src, imgs);
+	for (int i = 0; i < 3; i++) {
 		imshow(std::to_string(i), row[i]);
-
 	}
-	Stitcher::Mode mode = Stitcher::PANORAMA;
-	//Mat_<Vec3b> dest = Mat::zeros(src.rows - 1, (src.cols - 1) * 3, CV_8UC3);
+
 	Mat_<Vec3b> dest(src.rows, (src.cols) * 3);
-	for(int i=0;i<src.rows;i++)
-	{
-		for (int j = 0;j < src.cols;j++)
-		{
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
 			dest(i, j) = row[0](i, j);
 		}
 	}
-	for (int i = 0;i < row[1].rows;i++)
-	{
-		for (int j = 0;j < row[1].cols;j++)
-		{
-			dest(i, j+ src.cols) = row[1](i, j);
+	for (int i = 0; i < row[1].rows; i++) {
+		for (int j = 0; j < row[1].cols; j++) {
+			dest(i, j + src.cols) = row[1](i, j);
 		}
 	}
-	for (int i = 0;i < row[2].rows;i++)
-	{
-		for (int j = 0;j < row[2].cols;j++)
-		{
-			dest(i , j + row[0].cols+row[1].cols) = row[2](i, j);
+	for (int i = 0; i < row[2].rows; i++) {
+		for (int j = 0; j < row[2].cols; j++) {
+			dest(i, j + row[0].cols + row[1].cols) = row[2](i, j);
 		}
 	}
-	
+
 	imwrite("result.jpg", dest);
 	imshow("Result", dest);
-	/*imshow("Img1", row[0]);
-	imshow("Img2", row[1]);
-	imshow("Img3", row[2]);*/
-	
-
-	
 	waitKey(0);
 }
+
 
 int main() {
 	int op;
@@ -467,11 +383,7 @@ int main() {
 		printf(" 1 - Open image\n");
 		printf(" 2 - Open BMP images from folder\n");
 		printf(" 3 - Negative image\n");
-		printf(" 4 - Cut open image\n");
-		printf(" 5 - Test rotate\n");
-		printf(" 6 - Create row\n");
-		printf(" 7 - Detectie contur\n");
-		printf(" 8 - Distanta intre 2 imagini\n");
+		printf(" 4 - Create Row Test\n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d", &op);
@@ -487,19 +399,7 @@ int main() {
 			testNegativeImage();
 			break;
 		case 4:
-			stitch();
-			break;
-		case 5:
-			testRotate();
-			break;
-		case 6:
 			testCreateRow();
-			break;
-		case 7:
-			detectieContur();
-			break;
-		case 8:
-			testCheckImages();
 			break;
 		}
 	} while (op != 0);
