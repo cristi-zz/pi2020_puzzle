@@ -531,6 +531,25 @@ void construireContur(std::vector<int> dirs, int x, int y) {
 }
 
 
+
+bool cross(int x, int y) {
+	if (x == abs(y - 4) || y == abs(x - 4))
+		return true;
+	return false;
+}
+
+void checkPuzzleImages(std::vector<int> p1, std::vector<int> p2) {
+	int n = min(p1.size(), p2.size());
+	int err = 0;
+	for (int x = 0; x < n; x++) {
+		if (!cross(p1.at(x), p2.at(x))) {
+			err++;
+		}
+	}
+
+	printf("Erori in codul generat: %d\n", err);
+}
+
 int main() {
 	int op;
 	do {
