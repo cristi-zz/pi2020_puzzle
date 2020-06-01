@@ -350,7 +350,6 @@ MigrationBackup/
 .ionide/
 /clean.bat
 /doc
-/Images
 /OpenCV
 /common.cpp
 /common.h

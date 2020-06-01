@@ -374,6 +374,7 @@ void testCreateRow() {
 }
 
 
+// final
 
 int getIndexMin(std::vector<double> v) {
 	float min = 1505.23;
@@ -397,6 +398,10 @@ double getValMin(std::vector<double> v) {
 	return min;
 }
 
+// 0 = dreapta
+// 1 = sus
+// 2 = stanga
+// 3 = jos
 std::vector<std::pair<int, double>> getMinVectorEdge(Mat_<Vec3b> i1, int orientation = 0) { //daca se pune doar parametriul i1 atunci returneaza un vector cu valorile minime pentru latura din dreapta
 	std::vector<std::pair<int, double>> v;
 
@@ -452,8 +457,36 @@ Mat_<Vec3b> firstFromRow(Mat_<Vec3b> sursa) { //caut imaginea care se potriveste
 	return first;
 }
 
+void finalForm() {
+	formate_grid();
+
+	Mat_<Vec3b> first = images.at(0);
+	images.erase(images.begin());
+
+	Mat_<Vec3b> dst = createRowFromFirst(first);
+
+	Mat_<Vec3b> second = firstFromRow(first);
+	Mat_<Vec3b> dst1 = createRowFromFirst(second);
+
+	Mat_<Vec3b> third = firstFromRow(second);
+	Mat_<Vec3b> dst2 = createRowFromFirst(third);
+
+	imshow("Final image1", dst);
+	imshow("Final image2", dst1);
+	imshow("Final image3", dst2);
+
+	Mat_<Vec3b> finalDest;
+	cv::vconcat(dst, dst1, finalDest);
+	cv::vconcat(finalDest, dst2, finalDest);
+
+	imshow("DESTINATION", finalDest);
+
+	waitKey(0);
+}
 
 
+
+// puzzle
 //int iii = 0;
 std::vector<int> generateChainCode(Mat_<Vec3b> image, int vec = 8) {
 	int rows[] = { 0, -1, -1, -1,  0,  1, 1, 1 };
@@ -530,6 +563,76 @@ void construireContur(std::vector<int> dirs, int x, int y) {
 	}
 }
 
+int checkValues(std::vector<int> v, int i, int nr) {
+	int aux = 0;
+	for (int j = i; j < v.size(); j++) {
+		if (v.at(j) == nr) {
+			aux++;
+		}
+		else {
+			if (aux >= 40)
+				return j;
+			else if (j > i + 20)
+				return -1;
+		}
+	}
+	return -1;
+}
+
+std::vector<int> getCodeLeftEdge(std::vector<int> v1) {
+	int indexS1 = 0, indexF1 = 0;
+	std::vector<int> edge1;
+
+	for (int i = 0; i < v1.size(); i++) {
+		int j = checkValues(v1, i, 0);
+		if (j > 0) {
+			int jj = checkValues(v1, j, 2);
+			if (jj > 0) {
+				indexS1 = j - 15;
+			}
+		}
+
+		int jj = checkValues(v1, i, 2);
+		if (jj > 0) {
+			int aux = checkValues(v1, jj, 4);
+			if (aux > 0) {
+				indexF1 = jj + 15;
+				break;
+			}
+		}
+	}
+	std::copy(v1.begin() + indexS1, v1.begin() + indexF1, back_inserter(edge1));
+	construireContur(edge1, 180, 50);
+
+	return edge1;
+}
+
+std::vector<int> getCodeRightEdge(std::vector<int> v2) {
+	int indexS2 = 0, indexF2 = 0;
+	std::vector<int> edge2;
+	for (int i = 0; i < v2.size(); i++) {
+		int j = checkValues(v2, i, 4);
+		if (j > 0) {
+			int jj = checkValues(v2, j, 6);
+			if (jj > 0) {
+				indexS2 = j - 15;
+			}
+		}
+
+		int jj = checkValues(v2, i, 6);
+		if (jj > 0) {
+			int aux = checkValues(v2, jj, 0);
+			if (aux > 0) {
+				indexF2 = jj + 15;
+			}
+		}
+	}
+
+	std::copy(v2.begin() + indexS2, v2.begin() + indexF2, back_inserter(edge2));
+	construireContur(edge2, 30, 150);
+
+	return edge2;
+}
 
 
 bool cross(int x, int y) {
@@ -550,6 +653,42 @@ void checkPuzzleImages(std::vector<int> p1, std::vector<int> p2) {
 	printf("Erori in codul generat: %d\n", err);
 }
 
+void puzzleImage() {
+	Mat_<Vec3b> p1, p2;
+	p1 = imread("Images/piece1.jpg", CV_LOAD_IMAGE_COLOR);
+	p2 = imread("Images/piece2.jpg", CV_LOAD_IMAGE_COLOR);
+	img = Mat(220, 220, CV_8UC3);
+
+	for (int i = 0; i < img.rows; i++) {
+		for (int j = 0; j < img.cols; j++) {
+			img(i, j) = Vec3b(255, 255, 255);
+		}
+	}
+	std::vector<int> c1 = generateChainCode(p1);
+	std::vector<int> c2 = generateChainCode(p2);
+
+	imshow("Piece1", p1);
+	imshow("Piece2", p2);
+	std::vector<int> left = getCodeLeftEdge(c1);
+	std::vector<int> right = getCodeRightEdge(c2);
+
+	printf("%d %d\n", left.size(), right.size());
+
+	for (int i = 0; i < left.size(); i++) {
+		printf("%d ", left.at(i));
+	}
+	printf("\n\n");
+	for (int i = 0; i < right.size(); i++) {
+		printf("%d ", right.at(i));
+	}
+
+
+	checkPuzzleImages(left, right);
+	imshow("Contur margini", img);
+
+	waitKey(0);
+}
+
 int main() {
 	int op;
 	do {
@@ -560,6 +699,8 @@ int main() {
 		printf(" 2 - Open BMP images from folder\n");
 		printf(" 3 - Negative image\n");
 		printf(" 4 - Create Row Test\n");
+		printf(" 5 - Forma finala\n");
+		printf(" 6 - Piese puzzle\n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d", &op);
@@ -575,6 +716,12 @@ int main() {
 			break;
 		case 4:
 			testCreateRow();
+			break;
+		case 5:
+			finalForm();
+			break;
+		case 6:
+			puzzleImage();
 			break;
 		}
 	} while (op != 0);
