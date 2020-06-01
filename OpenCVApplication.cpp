@@ -373,7 +373,39 @@ void testCreateRow() {
 	waitKey(0);
 }
 
+int getIndexMin(std::vector<double> v) {
+	float min = 1505.23;
+	int minIdx = 0;
+	for (int i = 0; i < v.size(); i++) {
+		if (v.at(i) < min) {
+			minIdx = i;
+			min = v.at(i);
+		}
+	}
+	return minIdx;
+}
 
+double getValMin(std::vector<double> v) {
+	double min = 1505.23;
+	for (int i = 0; i < v.size(); i++) {
+		if (v.at(i) < min) {
+			min = v.at(i);
+		}
+	}
+	return min;
+}
+
+std::vector<std::pair<int, double>> getMinVectorEdge(Mat_<Vec3b> i1, int orientation = 0) { //daca se pune doar parametriul i1 atunci returneaza un vector cu valorile minime pentru latura din dreapta
+	std::vector<std::pair<int, double>> v;
+
+	for (int i = 0; i < images.size(); i++) {
+		std::vector<double> aux = compareImages(i1, images.at(i));
+		if (getIndexMin(aux) == orientation) {
+			v.push_back(std::pair<int, double>(i, getValMin(aux)));
+		}
+	}
+	return v;
+}
 
 
 int main() {
