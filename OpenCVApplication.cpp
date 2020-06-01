@@ -6,6 +6,7 @@
 #include "opencv2/stitching.hpp" 
 
 std::vector<Mat_<Vec3b>> images;
+Mat_<Vec3b> img;
 
 void testOpenImage()
 {
@@ -147,8 +148,7 @@ void formate_grid() {
 	while (openFileDlg(filename)) {
 		source = imread(filename, CV_LOAD_IMAGE_COLOR);
 		formate_grid_helper(source);
-
-		printf("Imagine decupata\n");
+		imshow("Imagine sursa", source);
 		break;
 	}
 }
@@ -375,6 +375,7 @@ void testCreateRow() {
 
 
 
+
 int main() {
 	int op;
 	do {
@@ -388,8 +389,7 @@ int main() {
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d", &op);
-		switch (op)
-		{
+		switch (op) {
 		case 1:
 			testOpenImage();
 			break;
