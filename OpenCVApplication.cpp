@@ -373,6 +373,8 @@ void testCreateRow() {
 	waitKey(0);
 }
 
+
+
 int getIndexMin(std::vector<double> v) {
 	float min = 1505.23;
 	int minIdx = 0;
@@ -405,6 +407,127 @@ std::vector<std::pair<int, double>> getMinVectorEdge(Mat_<Vec3b> i1, int orienta
 		}
 	}
 	return v;
+}
+
+std::pair<int, double> getMinPair(std::vector<std::pair<int, double>> v) {
+	double min = 1505.23;
+	std::pair<int, double> r;
+	for (int i = 0; i < v.size(); i++) {
+		if (v.at(i).second < min) {
+			min = v.at(i).second;
+			r = v.at(i);
+		}
+	}
+	return r;
+}
+
+Mat_<Vec3b> createRowFromFirst(Mat_<Vec3b> sursa) { //creeaza un rand cu prima imagine 'sursa'
+	Mat_<Vec3b> dest, aux;
+	sursa.copyTo(aux);
+	sursa.copyTo(dest);
+
+	int img = 0;
+	int n = images.size();
+
+	while (img != 2) {
+		std::pair<int, double> r = getMinPair(getMinVectorEdge(aux));
+		cv::hconcat(dest, images.at(r.first), dest);
+		images.at(r.first).copyTo(aux);
+		images.erase(images.begin() + r.first);
+		n = images.size();
+		img++;
+	}
+
+	return dest;
+}
+
+Mat_<Vec3b> firstFromRow(Mat_<Vec3b> sursa) { //caut imaginea care se potriveste jos
+	Mat_<Vec3b> first;
+	int n = images.size();
+
+	std::pair<int, double> r = getMinPair(getMinVectorEdge(sursa, 3));
+	first = images.at(r.first);
+	images.erase(images.begin() + r.first);
+
+	return first;
+}
+
+
+
+//int iii = 0;
+std::vector<int> generateChainCode(Mat_<Vec3b> image, int vec = 8) {
+	int rows[] = { 0, -1, -1, -1,  0,  1, 1, 1 };
+	int cols[] = { 1,  1,  0, -1, -1, -1, 0, 1 };
+	std::vector<int> v;
+
+	int height = image.rows;
+	int width = image.cols;
+
+	Mat_<Vec3b> imgDest = Mat::zeros(height, width, CV_8UC3);
+	Mat_<uchar> binary = Mat::zeros(height, width, CV_8UC1);
+	boolean first = true;
+	Point p0 = Point(0, 0);
+
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			imgDest(i, j) = Vec3b(255, 255, 255);
+			if (image(i, j) == Vec3b(0, 0, 0)) {
+				binary(i, j) = 1;
+				if (first) {
+					p0 = Point(i, j); // Alegem pixelul de start P0
+					first = false;
+				}
+			}
+		}
+	}
+
+	int dir = 7;
+	int index = 0;
+	Point current = p0;
+	Point p1 = (0, 0);
+	first = true;
+
+	while (true) {
+		if (current == p0 && !first)
+			break;
+		first = false;
+		imgDest(current.x, current.y) = Vec3b(0, 0, 0);
+		int posIndex = dir % 2 == 0 ? (dir + 7) % 8 : (dir + 6) % 8;
+		while (binary(current.x, current.y) != binary(current.x + rows[posIndex], current.y + cols[posIndex])) {
+			if (posIndex == 7)
+				posIndex = 0;
+			else
+				posIndex++;
+		}
+		v.push_back(posIndex);
+		current.x += rows[posIndex];
+		current.y += cols[posIndex];
+		if (v.size() == 1)
+			p1 = current;
+		else if (p1 == current)
+			break;
+		//actualizam DIR
+		dir = posIndex;
+	}
+
+	//imshow(std::string("conturrrrr") + std::to_string(iii++), imgDest);
+	return v;
+}
+
+void construireContur(std::vector<int> dirs, int x, int y) {
+	int rows[] = { 0, -1, -1, -1,  0,  1, 1, 1 };
+	int cols[] = { 1,  1,  0, -1, -1, -1, 0, 1 };
+
+	img(x, y) = Vec3b(0, 0, 255);
+	int index = 0, dir;
+	while (index < dirs.size()) {
+		dir = dirs.at(index);
+
+		x += rows[dir];
+		y += cols[dir];
+		img(x, y) = Vec3b(0, 0, 255);
+		index++;
+	}
 }
 
 
