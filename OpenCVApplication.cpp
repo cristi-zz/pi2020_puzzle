@@ -530,6 +530,8 @@ void construireContur(std::vector<int> dirs, int x, int y) {
 	}
 }
 
+
+
 bool cross(int x, int y) {
 	if (x == abs(y - 4) || y == abs(x - 4))
 		return true;
@@ -547,7 +549,6 @@ void checkPuzzleImages(std::vector<int> p1, std::vector<int> p2) {
 
 	printf("Erori in codul generat: %d\n", err);
 }
-
 
 int main() {
 	int op;
