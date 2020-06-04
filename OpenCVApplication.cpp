@@ -398,6 +398,12 @@ double getValMin(std::vector<double> v) {
 	return min;
 }
 
+void printVector(std::vector<double> v) {
+	for (int i = 0; i < v.size(); i++) {
+		printf("%.3f ", v.at(i));
+	}
+}
+
 // 0 = dreapta
 // 1 = sus
 // 2 = stanga
@@ -407,6 +413,8 @@ std::vector<std::pair<int, double>> getMinVectorEdge(Mat_<Vec3b> i1, int orienta
 
 	for (int i = 0; i < images.size(); i++) {
 		std::vector<double> aux = compareImages(i1, images.at(i));
+		printf("\nImagine %d: ", i);
+		printVector(aux);
 		if (getIndexMin(aux) == orientation) {
 			v.push_back(std::pair<int, double>(i, getValMin(aux)));
 		}
@@ -432,14 +440,14 @@ Mat_<Vec3b> createRowFromFirst(Mat_<Vec3b> sursa) { //creeaza un rand cu prima i
 	sursa.copyTo(dest);
 
 	int img = 0;
-	int n = images.size();
 
+	printf("\n\nCaut imagine in dreapta:  ");
 	while (img != 2) {
-		std::pair<int, double> r = getMinPair(getMinVectorEdge(aux));
+		printf("\n\nColoana %d ", img + 1);
+		std::pair<int, double> r = getMinPair(getMinVectorEdge(aux, 0));
+		printf("\tValoare aleasa: (imagine %d) (distanta %.3f)", r.first, r.second);
 		cv::hconcat(dest, images.at(r.first), dest);
 		images.at(r.first).copyTo(aux);
-		images.erase(images.begin() + r.first);
-		n = images.size();
 		img++;
 	}
 
@@ -449,11 +457,10 @@ Mat_<Vec3b> createRowFromFirst(Mat_<Vec3b> sursa) { //creeaza un rand cu prima i
 Mat_<Vec3b> firstFromRow(Mat_<Vec3b> sursa) { //caut imaginea care se potriveste jos
 	Mat_<Vec3b> first;
 	int n = images.size();
-
+	printf("\n\nCaut prima imagine dintr-un rand: ");
 	std::pair<int, double> r = getMinPair(getMinVectorEdge(sursa, 3));
+	printf("\tValoare aleasa: (imagine %d) (distanta %.3f)", r.first, r.second);
 	first = images.at(r.first);
-	images.erase(images.begin() + r.first);
-
 	return first;
 }
 
@@ -480,7 +487,6 @@ void finalForm() {
 	cv::vconcat(finalDest, dst2, finalDest);
 
 	imshow("DESTINATION", finalDest);
-
 	waitKey(0);
 }
 
@@ -634,7 +640,6 @@ std::vector<int> getCodeRightEdge(std::vector<int> v2) {
 	return edge2;
 }
 
-
 bool cross(int x, int y) {
 	if (x == abs(y - 4) || y == abs(x - 4))
 		return true;
@@ -642,11 +647,13 @@ bool cross(int x, int y) {
 }
 
 void checkPuzzleImages(std::vector<int> p1, std::vector<int> p2) {
+	std::reverse(p2.begin(), p2.end());
 	int n = min(p1.size(), p2.size());
 	int err = 0;
 	for (int x = 0; x < n; x++) {
 		if (!cross(p1.at(x), p2.at(x))) {
 			err++;
+			//de pus media erorilor
 		}
 	}
 
@@ -672,15 +679,15 @@ void puzzleImage() {
 	std::vector<int> left = getCodeLeftEdge(c1);
 	std::vector<int> right = getCodeRightEdge(c2);
 
-	printf("%d %d\n", left.size(), right.size());
+	//printf("%d %d\n", left.size(), right.size());
 
-	for (int i = 0; i < left.size(); i++) {
+	/*for (int i = 0; i < left.size(); i++) {
 		printf("%d ", left.at(i));
 	}
 	printf("\n\n");
 	for (int i = 0; i < right.size(); i++) {
 		printf("%d ", right.at(i));
-	}
+	}*/
 
 
 	checkPuzzleImages(left, right);
