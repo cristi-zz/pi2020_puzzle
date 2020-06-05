@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "common.h"
+#include <cmath>  
 #include "opencv2/stitching.hpp" 
 
 std::vector<Mat_<Vec3b>> images;
@@ -137,6 +138,7 @@ void formate_grid_helper(Mat_<Vec3b> image) {
 			images.push_back(mini_images);
 			std::string filename = "../Images/GRID_IMAGE" + std::to_string(idx) + ".jpg";
 			imwrite(filename, mini_images);
+			imshow(filename, mini_images);	
 			idx++;
 		}
 	}
@@ -647,18 +649,85 @@ bool cross(int x, int y) {
 }
 
 void checkPuzzleImages(std::vector<int> p1, std::vector<int> p2) {
-	std::reverse(p2.begin(), p2.end());
+	std::reverse(p1.begin(), p1.end());
 	int n = min(p1.size(), p2.size());
 	int err = 0;
+	int errM = 0;
 	for (int x = 0; x < n; x++) {
 		if (!cross(p1.at(x), p2.at(x))) {
 			err++;
-			//de pus media erorilor
+			
+			int a = p1.at(x);
+			int b = p2.at(x);
+
+			int dif = std::abs(a - b);
+			if (dif == 0) errM += 4;
+			else if (dif == 1 || dif == 7) errM += 3;
+			else if (dif == 2 || dif == 6) errM += 2;
+			else if (dif == 3 || dif == 5) errM += 1;
+
 		}
 	}
 
-	printf("Erori in codul generat: %d\n", err);
+	float finalErr = (float)errM / err;
+
+	printf("\nEroarea din codul generat: %f\n", finalErr);
+	finalErr *= 45;
+	printf("Eroarea din codul generat (in grade): %f\n", finalErr);
+
 }
+
+void checkPuzzleImagesOffset(std::vector<int> p1, std::vector<int> p2) {
+	std::reverse(p1.begin(), p1.end());
+	int n = min(p1.size(), p2.size());
+	int size = p1.size() - p2.size();
+	int offsetMaxim = p1.size() / 2;
+	std::vector<float> errs;
+	for (int of = 0; of <= offsetMaxim; of++) {
+		int err = 0;
+		int errM = 0;
+		for (int x = 0; x < n - of; x++) {
+			if (!cross(p1.at(x + of), p2.at(x))) {
+				err++;
+
+				int a = p1.at(x);
+				int b = p2.at(x);
+				int dif = std::abs(a - b);
+
+				if (dif == 0) errM += 4;
+				else if (dif == 1 || dif == 7) errM += 3;
+				else if (dif == 2 || dif == 6) errM += 2;
+				else if (dif == 3 || dif == 5) errM += 1;
+			}
+		}
+		float finalErr = (float)errM / err;
+		errs.push_back(finalErr);
+	}
+
+	std::pair<int, float> min = std::pair<int, float>(0, 999990.0);
+	for (int i = 0; i < errs.size(); i++) {
+		printf("%.3f ", errs.at(i));
+		if (errs.at(i) < min.second) {
+			min.first = i;
+			min.second = errs.at(i);
+		}
+	}
+
+	printf("\nOffsetul pentru eroare minima este: %d %f", min.first, min.second);
+
+	std::ofstream file;
+	file.open("errors.csv", std::ofstream::out | std::ofstream::trunc);
+	for (int i = 0; i < errs.size(); i++) {
+		file << errs.at(i) << ", \n";
+	}
+
+
+	/*printf("Erorea din codul generat: %f\n", finalErr);
+	finalErr *= 45;
+	printf("Erorea din codul generat (in grade): %f\n", finalErr);*/
+
+}
+
 
 void puzzleImage() {
 	Mat_<Vec3b> p1, p2;
@@ -679,9 +748,11 @@ void puzzleImage() {
 	std::vector<int> left = getCodeLeftEdge(c1);
 	std::vector<int> right = getCodeRightEdge(c2);
 
-	//printf("%d %d\n", left.size(), right.size());
+	checkPuzzleImagesOffset(left, right);
 
-	/*for (int i = 0; i < left.size(); i++) {
+	/*printf("%d %d\n", left.size(), right.size());
+
+	for (int i = 0; i < left.size(); i++) {
 		printf("%d ", left.at(i));
 	}
 	printf("\n\n");
@@ -691,6 +762,7 @@ void puzzleImage() {
 
 
 	checkPuzzleImages(left, right);
+	
 	imshow("Contur margini", img);
 
 	waitKey(0);
