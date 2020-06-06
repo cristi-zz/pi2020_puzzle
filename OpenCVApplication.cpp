@@ -138,7 +138,7 @@ void formate_grid_helper(Mat_<Vec3b> image) {
 			images.push_back(mini_images);
 			std::string filename = "../Images/GRID_IMAGE" + std::to_string(idx) + ".jpg";
 			imwrite(filename, mini_images);
-			imshow(filename, mini_images);	
+			//imshow(filename, mini_images);	
 			idx++;
 		}
 	}
@@ -415,8 +415,8 @@ std::vector<std::pair<int, double>> getMinVectorEdge(Mat_<Vec3b> i1, int orienta
 
 	for (int i = 0; i < images.size(); i++) {
 		std::vector<double> aux = compareImages(i1, images.at(i));
-		printf("\nImagine %d: ", i);
-		printVector(aux);
+		//printf("\nImagine %d: ", i);
+		//printVector(aux);
 		if (getIndexMin(aux) == orientation) {
 			v.push_back(std::pair<int, double>(i, getValMin(aux)));
 		}
@@ -443,11 +443,11 @@ Mat_<Vec3b> createRowFromFirst(Mat_<Vec3b> sursa) { //creeaza un rand cu prima i
 
 	int img = 0;
 
-	printf("\n\nCaut imagine in dreapta:  ");
+	//printf("\n\nCaut imagine in dreapta:  ");
 	while (img != 2) {
-		printf("\n\nColoana %d ", img + 1);
+		//printf("\n\nColoana %d ", img + 1);
 		std::pair<int, double> r = getMinPair(getMinVectorEdge(aux, 0));
-		printf("\tValoare aleasa: (imagine %d) (distanta %.3f)", r.first, r.second);
+		//printf("\tValoare aleasa: (imagine %d) (distanta %.3f)", r.first, r.second);
 		cv::hconcat(dest, images.at(r.first), dest);
 		images.at(r.first).copyTo(aux);
 		img++;
@@ -459,9 +459,9 @@ Mat_<Vec3b> createRowFromFirst(Mat_<Vec3b> sursa) { //creeaza un rand cu prima i
 Mat_<Vec3b> firstFromRow(Mat_<Vec3b> sursa) { //caut imaginea care se potriveste jos
 	Mat_<Vec3b> first;
 	int n = images.size();
-	printf("\n\nCaut prima imagine dintr-un rand: ");
+	//printf("\n\nCaut prima imagine dintr-un rand: ");
 	std::pair<int, double> r = getMinPair(getMinVectorEdge(sursa, 3));
-	printf("\tValoare aleasa: (imagine %d) (distanta %.3f)", r.first, r.second);
+	//printf("\tValoare aleasa: (imagine %d) (distanta %.3f)", r.first, r.second);
 	first = images.at(r.first);
 	return first;
 }
@@ -706,7 +706,7 @@ void checkPuzzleImagesOffset(std::vector<int> p1, std::vector<int> p2) {
 
 	std::pair<int, float> min = std::pair<int, float>(0, 999990.0);
 	for (int i = 0; i < errs.size(); i++) {
-		printf("%.3f ", errs.at(i));
+		//printf("%.3f ", errs.at(i));
 		if (errs.at(i) < min.second) {
 			min.first = i;
 			min.second = errs.at(i);
